@@ -28,7 +28,9 @@ chmod +x convert-cbz-to-epub.py
 
 Run the script from the command line, providing the path to the folder containing your `.cbz` files and the output folder where the `.epub` files will be saved:
 
+```sh
 python convert-cbz-to-epub.py /path/to/your/input_folder /path/to/your/output_folder
+```
 
 ### Optional Arguments
 
