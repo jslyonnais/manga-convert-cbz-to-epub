@@ -1,0 +1,12 @@
+# Ignore everything by default
+*
+
+# Except for these specific files and folders
+!README.md
+!.gitignore
+!input/
+!convert-cbz-to-epub.py
+
+# Inside input/ directory, ignore everything
+input/*
+!input/.gitkeep
