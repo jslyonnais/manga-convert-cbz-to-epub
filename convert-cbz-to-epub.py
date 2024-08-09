@@ -64,7 +64,7 @@ def create_epub(temp_dir, output_path):
     book.add_item(epub.EpubNav())
     epub.write_epub(output_path, book, {})
 
-def process_cbz(cbz_file, output_folder, quality, max_height):
+def process_cbz(cbz_file, output_folder, quality, max_height, relative_path=""):
     """
     Processes a CBZ file by extracting images, compressing them, and creating an EPUB file.
     
@@ -73,13 +73,16 @@ def process_cbz(cbz_file, output_folder, quality, max_height):
         output_folder (str): The folder where the EPUB file will be saved.
         quality (int): The quality of the compressed images (1-100).
         max_height (int): The maximum height of the images.
+        relative_path (str): The relative path to maintain folder structure.
     """
     with tempfile.TemporaryDirectory() as temp_dir:
         with zipfile.ZipFile(cbz_file, 'r') as zip_ref:
             zip_ref.extractall(temp_dir)
         compress_images(temp_dir, quality=quality, max_height=max_height)
         epub_filename = os.path.splitext(os.path.basename(cbz_file))[0] + ".epub"
-        epub_path = os.path.join(output_folder, epub_filename)
+        epub_output_path = os.path.join(output_folder, relative_path)
+        os.makedirs(epub_output_path, exist_ok=True)
+        epub_path = os.path.join(epub_output_path, epub_filename)
         create_epub(temp_dir, epub_path)
         print(f"✅ Created {epub_path}")
 
@@ -93,15 +96,14 @@ def process_folder(input_folder, output_folder, quality, max_height):
         quality (int): The quality of the compressed images (1-100).
         max_height (int): The maximum height of the images.
     """
-    cbz_files = [f for f in os.listdir(input_folder) if f.lower().endswith('.cbz')]
-    if not cbz_files:
-        print("No .cbz files found in the specified folder.")
-        return
+    for root, _, files in os.walk(input_folder):
+        relative_path = os.path.relpath(root, input_folder)
+        cbz_files = [f for f in files if f.lower().endswith('.cbz')]
+        if not cbz_files:
+            continue
 
-    os.makedirs(output_folder, exist_ok=True)
-
-    for cbz_file in tqdm(cbz_files, desc="Processing CBZ files"):
-        process_cbz(os.path.join(input_folder, cbz_file), output_folder, quality, max_height)
+        for cbz_file in tqdm(cbz_files, desc=f"Processing CBZ files in {relative_path}"):
+            process_cbz(os.path.join(root, cbz_file), output_folder, quality, max_height, relative_path)
 
 def get_args():
     """
